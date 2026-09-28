@@ -1,0 +1,257 @@
+---
+title: "Statistical methods for multi-location studies in environmental epidemiology"
+author: "Pierre Masselot"
+format:
+  revealjs:
+    theme: files/lshtm.scss
+    width: 1600
+    height: 900
+    logo: files/LSHTM_Logo_Black.png
+    slide-number: true
+    embed-resources: true
+    title-slide-attributes:
+      data-background-image: files/Chariot_black.png
+      data-background-size: contain
+      data-background-opacity: "0.1"
+    mermaid-format: png
+bibliography: files/bibliography.bib
+csl: files/nature.csl
+---
+
+# Introduction: Multi-location studies for environmental epidemiology
+
+## Environmental exposures and health
+
+- An example from the GBD
+
+## Air pollution and health
+
+- Example: Harvard's six cities study
+
+## Non-optimal temperature and health
+
+- Michelle's study
+- MCC studies
+
+## Why multi-location studies?
+
+- Complexity, low power of single population studies
+- Interact with other environments: important heterogeneity
+- Give other examples
+
+## The two-stage framework
+
+- Computational advantages
+- Data protection
+
+## Description of the two-stage framework
+
+
+## Main features
+
+- Improved estimates (BLUPs)
+- Uncertainty management
+- Estimating effect modification
+
+
+## Software
+
+
+## Plan
+
+
+## Material
+
+
+# First stage: distributed-lag (nonlinear) models
+
+## An example: PM10-related mortality in London
+
+## Data used
+
+- Typical time series of mortality and exposure(s)
+
+
+## The time-series design
+
+
+## Case-crossover and case time series designs
+
+
+## Poisson model
+
+- Lay the Poisson model
+- And covariates
+
+
+## Lagged association
+
+
+## Issues with lagged association
+
+- The issue of collinearity
+
+
+## Distributed-lag models
+
+- Imposing some constraints
+
+
+## DLM specification
+
+- With basis expansion
+
+
+## Fitting DLMs
+
+- Rewrite probably in matrix form
+
+
+## Show example results
+
+
+
+## Nonlinear associations: temperature
+
+- We now have a nonlinear association
+
+
+## Nonlinear associations by basis expansion
+
+
+
+## The DLNM
+
+
+
+## Tensor product between the dimensions
+
+
+
+## The crossbasis
+
+
+
+## Fitting a DLNM
+
+
+
+## Example results
+
+
+
+## Reducing DLNMs
+
+
+
+## Inference
+
+
+
+## Software and code
+
+- A QR code to the first-stage
+- Mention the package `dlnm`
+
+
+## Summary
+
+
+
+## Bibliographic notes
+
+- Introduction of DLM with polynomials
+- Then splines
+- Then Ben's paper 
+- Then Antonio's
+- Also Bhaskaran's time series paper?
+
+
+# Second-stage: meta-analysis
+
+## Reminder: why multi-location studies
+
+- Low power in some locations
+- Wide heterogeneity
+
+
+## An example: the Italian dataset
+
+
+
+## Some first-stage curves
+
+
+
+## Pooling the curves: meta-analysis
+
+
+
+## Random effect meta-analysis
+
+
+
+## Meta-regression
+
+
+
+## Interpreting meta-regression
+
+
+
+
+## The full mixed effects framework
+
+
+
+
+## Best linear unbiased predictions (BLUP)
+
+
+
+
+## Interpreting BLUPs
+
+- Example on the Italian dataset
+
+
+
+## Equivalence with ridge (not sure)
+
+
+
+
+## The full process (here a nice flowchart)
+
+
+
+## Summary
+
+
+
+## Bibliographic notes
+
+
+
+# Some examples
+
+
+## Temperature-related mortality across the world
+
+
+
+## PM-related mortality
+
+
+
+## Air-conditioning and heat-related mortality
+
+
+
+# Conclusion
+
+
+## A summary of the whole process
+
+
+## Full material
