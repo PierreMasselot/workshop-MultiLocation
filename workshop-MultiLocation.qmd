@@ -9,6 +9,7 @@ format:
     logo: files/LSHTM_Logo_Black.png
     slide-number: true
     embed-resources: true
+    standalone: true
     title-slide-attributes:
       data-background-image: files/Chariot_black.png
       data-background-size: contain
@@ -73,9 +74,9 @@ The impacts of ambient environmental exposures can be difficult to estimate
 
 ::: {layout-ncol=2}
 
-![Harvard's six cities study gathered a large cohort @DockeryEtAl1993AssociationAirPollution](figures/Harvard6cities.png){height="600"}
+![Harvard's six cities study gathered a large cohort [@DockeryEtAl1993AssociationAirPollution]](figures/Harvard6cities.png){height="450"}
 
-![Time series of pollutants and mortality in 20 cities @SametEtAl2000FineParticulateAir](figures/Harvard20cities.png){height="600"}
+![Time series of pollutants and mortality in 20 cities [@SametEtAl2000FineParticulateAir]](figures/Harvard20cities.png){height="450"}
 
 :::
 
@@ -85,9 +86,9 @@ The impacts of ambient environmental exposures can be difficult to estimate
 
 ::: {layout-ncol=2}
 
-![Heat and cold across the US @AndersonBell2009WeatherRelatedMortalityHow](figures/AndersonBell.png)
+![Heat and cold across the US [@AndersonBell2009WeatherRelatedMortalityHow]](figures/AndersonBell.png)
 
-![An international study with hundreds of cities @GasparriniEtAl2015MortalityRiskAttributable](figures/GasparriniMCC.png){height="600"}
+![An international study with hundreds of cities [@GasparriniEtAl2015MortalityRiskAttributable]](figures/GasparriniMCC.png){height="450"}
 
 :::
 
@@ -199,7 +200,9 @@ $$ \text{Deaths} \sim f(\text{PM}_{10})$$
 - Deaths: daily counts
 - PM~10~: Coarse particulate matter concentration ($\mu g/m^3$)
 
-London (1996-2001)
+Study area: London
+
+Period: 1996-2001
 
 
 ## A look at the data
@@ -243,10 +246,10 @@ Case-crossover, Case time series, Cohorts
 
 Response $y_t$ is a count: we use a Poisson model[^1]
 
-$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{x_t \beta} + \sum_{j=1}^p \color{green}{z_{tj} \gamma_j}\right)$$
+$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{x_t \beta} + \sum_{j=1}^p z_{tj} \gamma_j\right)$$
 
 - $\color{red}{x_t}$: Exposure (PM~10~)
-- $\color{green}{z_{tj}}$: Covariates (Confounders such as day-of-year, day-of-week, etc)
+- $z_{tj}$: Covariates (Confounders such as day-of-year, day-of-week, etc)
 
 [^1]: We often use a quasi-Poisson likelihood due to over-dispersion
 
@@ -297,7 +300,7 @@ RR: Relative risk $e^{\beta}$, RR = 1 means no association
 
 The model becomes 
 
-$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_{l=0}^L x_{t-l} \beta_l} + w_t\right)$$
+$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_{l=0}^L \beta_l x_{t-l}} + \sum_{j=1}^p z_{tj} \gamma_j\right)$$
 
 
 ```{r}
@@ -313,11 +316,11 @@ data.frame(london[, c("date", "death")], xlags[,1:3])[21:23,] |>
 ## Lagged PM~10~ association
 
 ```{r}
-#| fig-height: 4.5
-#| fig-width: 7
+#| fig-height: 5.5
+#| fig-width: 7.7
 #| fig-align: center
-#| out-height: 600px
-#| out-width: 900px
+#| out-height: 550px
+#| out-width: 750px
 #| label: UnconsLag
 
 # Plot
@@ -334,55 +337,81 @@ abline(h = 1)
 
 ## Issues with lagged association
 
-<br> High degree of autocorrelation in environmental exposures
+High degree of autocorrelation in environmental exposures
 
-&DoubleRightArrow; Collinearity between the $\color{red}{x_{t-l}}$
+- Collinearity between the $\color{red}{x_{t-l}}$
+- Unstable estimates (increased variance)
 
-<br> This leads to unstable estimates
+<br> Not suitable for long lag periods
 
-<br> Constrain the coefficient to stabilise estimation
+- High dimensional predictors
+- Decreases power
+
 
 
 ## Distributed-lag models (DLM)
 
-Represents a **lag-response function** as a **smooth function of lags**
+Represents a lagged association as a **smooth function of lags**
 
-<br>This is done by **basis representation**:
+$$\beta_l = f(l)$$
 
-$$\beta_l = \sum_k \theta_k B_k(l)$$
+$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_{l=0}^L f(l) x_{t-l}} + \sum_{j=1}^p z_{tj} \gamma_j \right)$$
 
-- $B_k(l)$ are predefined **basis functions**
-- $\theta_k$ associated parameters
+<br>This provides a **lag-response function**
+
+- Representing how association varies with lag
 
 
 ## Basis representation
 
-At any lag, sum several nonlinear functions
+<br>Smooth function $f(l)$ can be estimated by **basis representation**:
+
+$$\beta_l = f(l) = \sum_k \theta_k b_k(l)$$
+
+- $b_k(l)$ are predefined **basis functions**
+- $\theta_k$ associated parameters
+
+
+&DoubleRightArrow; Flexible representation of nonlinear functions as a *linear combination* 
+
+
+## Examples of bases $b_k(l)$
+
 
 ```{r}
 #| label: basisExpansion
-#| layout-ncol: 2
-#| fig-height: 5
-#| fig-width: 7
+#| fig-height: 5.5
+#| fig-width: 8.5
 #| fig-align: center
-#| out-height: 600px
-#| out-width: 840px
+#| out-height: 550px
+#| out-width: 850px
 
 # With lags
 l <- seq(0, 7, length.out = 40)
 
+par(mar=c(4, 4, 2, 1))
+layout(rbind(c(1, 1, 2, 2), c(0, 3, 3, 0)))
+
+# Step function
+stepbasis <- model.matrix(~ 0 + cut(l, 4))
+matplot(l, stepbasis, type = "l", 
+  col = rev(brewer.pal(ncol(stepbasis) + 1, "Greens")[-1]),
+  lty = 1, lwd = 2, xlab = "Lag", ylab = "Basis", main = "Strata (steps)")
+abline(h = 0, lwd = 2)
+
 # Polynomial basis
 polybasis <- poly(l, degree = 4)
 matplot(l, polybasis, type = "l", 
-  col = brewer.pal(ncol(polybasis) + 1, "Greens")[-1],
+  col = rev(brewer.pal(ncol(polybasis) + 1, "Greens")[-1]),
   lty = 1, lwd = 2, xlab = "Lag", ylab = "Basis", main = "Polynomial")
+abline(h = 0, lwd = 2)
 
 # B-spline basis
 bsbasis <- ps(l, df = 5)
 matplot(l, bsbasis, type = "l", 
-  col = brewer.pal(ncol(bsbasis) + 1, "Greens")[-1],
+  col = rev(brewer.pal(ncol(bsbasis) + 1, "Greens")[-1]),
   lty = 1, lwd = 2, xlab = "Lag", ylab = "Basis", main = "B-Splines")
-
+abline(h = 0, lwd = 2)
 ```
 
 ## Fitting DLMs
@@ -390,27 +419,29 @@ matplot(l, bsbasis, type = "l",
 With basis expansion we have
 
 $$\begin{align}
-  \color{red}{\sum_{l} x_{t-l} \beta_l} &= \sum_{l} x_{t-l} \sum_k \theta_k B_k(l) \\
-  &= \sum_k \theta_k \sum_l x_{t-l} B_k(l)
+  \color{red}{\sum_{l} x_{t-l} \beta_l} &= \sum_{l} x_{t-l} \sum_k \theta_k b_k(l) \\
+  &= \sum_k \theta_k \sum_l x_{t-l} b_k(l)
 \end{align}
 $$
-We define $k$ new variables $v_k = \sum_l x_{t-l} B_k(l)$ to obtain the Poisson model 
+We define $k$ new variables $\color{red}{v_k = \sum_l x_{t-l} b_k(l)}$ to obtain the Poisson model 
 
-$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_{l=0}^L v_k \theta_k} + w_t\right)$$
+$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_{l=0}^L \theta_k v_k} +  \sum_{j=1}^p z_{tj} \gamma_j\right)$$
 
 ## Fitting DLMs: matrix form
 
 In matrix form, the basis expansion becomes
 
 $$\begin{align}
-  \color{red}{\mathbf{x}_t^T \boldsymbol{\beta}} &= \mathbf{x}_t^T \begin{bmatrix} \mathbf{B_1^T\boldsymbol{\theta}} \\ \vdots \\ \mathbf{B_L^T\boldsymbol{\theta}} \end{bmatrix} \\
-  &= \mathbf{x}_t^T \mathbf{C} \boldsymbol{\theta}
+  \color{red}{\mathbf{x}_t^T \boldsymbol{\beta}} &= \mathbf{x}_t^T \begin{bmatrix} \mathbf{b}^T(1)\boldsymbol{\theta} \\ \vdots \\ \mathbf{b}^T(L)\boldsymbol{\theta} \end{bmatrix} \\
+  &= \mathbf{x}_t^T \mathbf{B} \boldsymbol{\theta}
 \end{align}$$
 
-The new predictor vector is then $\mathbf{v}_t^T = \mathbf{x}_t^T \mathbf{C}$
+The new predictor vector is then $\mathbf{v}_t^T = \mathbf{x}_t^T \mathbf{B}$
 
 ::: aside
-$\mathbf{C}$ contains the bases $B_k(l)$
+Vector $\mathbf{b}(l)$ contains the $K$ basis functions evaluated at lag $l$
+
+Matrix $\mathbf{B}$ contains the basis $b_k(l)$ at row $l$ and column $k$
 :::
 
 
@@ -422,18 +453,21 @@ $\mathbf{C}$ contains the bases $B_k(l)$
 <br>
 
 - Natural cubic splines
-- One internal knot
+- Knots placed at lags 1 and 3
+
+
+&DoubleRightArrow; Four basis functions
 
 :::
 
-:::{.column}
-<br>
+:::{.column width=60%}
 
 ```{r}
 #| label: DLM
-#| fig-height: 4
+#| fig-height: 5
 #| fig-width: 6
 #| out-width: 800px
+#| fig-align: right
 
 # Plot
 par(mar = c(4, 4, 2, 0))
@@ -465,25 +499,26 @@ $$\color{red}{\sum_{l} f(x_{t-l}, l)}$$
 
 :::: {.columns}
 
-::: {.column width="40%"}
+::: {.column width=50%}
 
 Estimate the two-dimensional surface
 
-$$f(x,l) = \sum_k^K \sum_m^M \theta_{km} B_k(x) B_m(l)$$
+$$f(x,l) = \sum_m^M \sum_k^K \theta_{mk} a_m(x) b_k(l) $$
 
-- $B_k()$ and $B_m()$ are two sets of basis functions
+- $a_m(x)$ and $b_k(l)$ are two sets of basis functions
+- They can be different- (e.g. polynomials and splines)
 
 :::
 
-::: {.column}
+::: {.column width=50%}
 
 ```{r}
 #| label: tensor
 #| cache: true
 #| fig-width: 5
 #| fig-height: 5
-#| out-width: 600px
-#| out-height: 600px
+#| out-width: 500px
+#| out-height: 500px
 #| fig-align: right
 
 # Grid
@@ -517,35 +552,42 @@ box()
 We can now rewrite our model
 
 $$\begin{align} 
-  \color{red}{\sum_{l} f(x_{t-l}, l)} &= \sum_{l}^L \sum_k^K \sum_m^M \theta_{km} B_k(x_{t-l}) B_m(l) \\
-  & = \sum_k^K \sum_m^M \theta_{km} \sum_{l}^L B_k(x_{t-l}) B_m(l)
+  \color{red}{\sum_{l} f(x_{t-l}, l)} &= \sum_{l}^L \sum_m^M \sum_k^K \theta_{mk} a_m(x_{t-l}) b_k(l) \\
+  & = \sum_m^M \sum_k^K \theta_{mk} \sum_{l}^L a_m(x_{t-l}) b_k(l)
 \end{align}$$
 
 which defines 
 
-- $KM$ bases $\sum_{l}^L B_k(x_{t-l}) B_m(l)$ cumulated over lags
-- $KM$-dimensional parameter vector $\boldsymbol{\theta}$
-
+::: {style="font-size: 80%;"}
+- $M \times K$ bases $\sum_{l}^L a_m(x_{t-l}) b_k(l)$ cumulated over lags
+- $M \times K$-dimensional parameter vector $\boldsymbol{\theta}$
+:::
 
 ## Matrix representation
 
 The tensor product can be represented 
 
-$$ \mathbf{B}_x^T(x) \boldsymbol{\Theta} \mathbf{B}_l(l) = \left(\mathbf{B}_x^T(x) \otimes \mathbf{B}_l^T(l)\right) \boldsymbol{\theta}$$
-with $\boldsymbol{\theta} = \text{vec}(\boldsymbol{\Theta})$
+$$ \mathbf{a}^T(x) \boldsymbol{\Theta} \mathbf{b}(l) = \left(\mathbf{a}^T(x) \otimes \mathbf{b}^T(l)\right) \boldsymbol{\theta}$$
+
+::: {style="font-size: 80%;"}
+$\boldsymbol{\Theta}$ contains $\theta_{mk}$ at row $m$ and column $k$, and $\boldsymbol{\theta} = \text{vec}(\boldsymbol{\Theta})$
+
+$\otimes$ is the Kronecker (outer) product
+:::
+
 
 The model becomes
 
-$$ \color{red}{\sum_{l} f(x_{t-l}, l)} = \sum_l \left(\mathbf{B}_x^T(x_{t-l}) \otimes \mathbf{B}_l^T(l)\right) \boldsymbol{\theta}$$
+$$ \sum_{l} f(x_{t-l}, l) = \sum_l \left(\mathbf{a}^T(x_{t-l}) \otimes \mathbf{b}^T(l)\right) \boldsymbol{\theta}$$
 
-Therefore we can simply use $\sum_l \left(\mathbf{B}_x^T(x_{t-l}) \otimes \mathbf{B}_l^T(l)\right) \boldsymbol{\theta}$ as new variables
+Therefore we can simply use $\color{red}{\mathbf{v}_t = \sum_l \left(\mathbf{a}^T(x_{t-l}) \otimes \mathbf{b}^T(l)\right)}$ as new variables
 
 
 ## Fitting a DLNM
 
 <br>We plug our new bases in the Poisson model
 
-$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\sum_l \left(\mathbf{B}_x^T(x_{t-l}) \otimes \mathbf{B}_l^T(l)\right) \boldsymbol{\theta}} + w_t\right)$$
+$$\mathbb{E}(y_t) = \exp \left(\alpha + \color{red}{\mathbf{v}_t  \boldsymbol{\theta}} + \sum_{j=1}^p z_{tj} \gamma_j \right)$$
 
 and the vector $\boldsymbol{\theta}$ can be used to reconstruct the surface
 
@@ -556,24 +598,30 @@ and the vector $\boldsymbol{\theta}$ can be used to reconstruct the surface
 
 :::: {.columns}
 
-::: {.column width=40%}
-<br>
+::: {.column width=50%}
+
 Association between temperature and mortality
 
-- Five cubic B-splines on temperature dimension
+- Four quadratic B-splines on temperature dimension
 - Four cubic B-splines on lag dimension
+
+
+&DoubleRightArrow; 16 bases in $\mathbf{v}_t$ and parameters $\boldsymbol{\theta}$
+
+\
 
 :::
 
-:::{.column}
+:::{.column width=50%}
 ```{r}
 #| label: DLNM
 #| fig-height: 7
 #| fig-width: 7
-#| out-width: 1000px
+#| out-width: 500px
 #| fig-align: right
 
 # Plot
+par(mar = c(0, 0, 0, 0))
 plot(surf3, zlab = "RR", xlab = "Temperature (C)")
 ```
 :::
@@ -583,12 +631,37 @@ plot(surf3, zlab = "RR", xlab = "Temperature (C)")
 
 We often want to reduce the surface to the **overall cumulative association**
 
-<br> &DoubleRightArrow; Cumulates the risk across lags
+$$f_{ov}(x) = \sum_l f(x,l) = \mathbf{a}^T(x)\boldsymbol{\theta}_{ov}$$
 
-$$f_{ov}(x) = \sum_l f(x,l) = B_x(x)\theta_{ov}$$
+We can derive a **reduced** parameter vector $\boldsymbol{\theta}_{ov}$ that defined the cumulative association with the marginal basis $\mathbf{a}(x)$
 
-<br>We can derive a **reduced** parameter vector $\theta_{ov}$ that defined the cumulative association with the marginal basis $B_x(x)$
 
+$$\boldsymbol{\theta}_{ov} = \left(\sum_{l=0}^L \mathbf{b}^T(l) \right) \boldsymbol{\Theta}^T$$
+
+
+## Inference
+
+ - DLNM plugs a crossbasis into a classical (generalised) linear model
+ - We can use classical theory to obtain the (co)variance matrix $V(\hat{\boldsymbol{\theta}})$
+- Then derive $V(\hat{\boldsymbol{\theta}}_{ov})$
+- Standard error for the curve at $x$: 
+
+$$\sqrt{\text{diag}\left(\mathbf{a}^T(x) V(\hat{\boldsymbol{\theta}}_{ov}) \mathbf{a}(x)\right)}$$
+
+- Which can then be used for confidence intervals
+
+## Overall cumulative of temperature
+
+```{r}
+#| label: DLNMoverall
+#| fig-height: 7
+#| fig-width: 8
+#| out-width: 600px
+#| fig-align: center
+
+# Plot
+plot(surf3, ylab = "RR", xlab = "Temperature (C)", ptype = "overall")
+```
 
 ## Summary
 
@@ -625,7 +698,7 @@ Implemented for **R** in the package `dlnm`
 
 # Get remote url of current git repo
 repo_url <- remote_url()
-exurl <- paste0(repo_url,"blob/main/examples/Stage1_dlnm.R")
+exurl <- paste0(repo_url,"/blob/main/examples/Stage1_dlnm.R")
 
 # Create QR code
 qrex <- qr_code(exurl)
@@ -639,30 +712,24 @@ plot(qrex)
 
 ## Bibliographic notes
 
-DLMs were initially proposed by @Almon1965DistributedLagCapital for **econometrics**
-
-Introduced by @Schwartz2000DistributedLagAir with polynomials to estimate the association between mortality and **air pollution**
-
-@ZanobettiEtAl2000GeneralizedAdditiveDistributed used **splines in DLMs**
-
-@Armstrong2006ModelsRelationshipAmbient laid the ground work for **nonlinear** DLNMs with the aim of modelling temperature-related mortality
-
-@GasparriniEtAl2010DistributedLagNonlinear puts everything together developing the **algebra of DLNMs**
-
-@BhaskaranEtAl2013TimeSeriesRegression provides an overview of the **time series design**
+- DLMs were initially proposed by @Almon1965DistributedLagCapital for **econometrics**
+- Introduced by @Schwartz2000DistributedLagAir with polynomials to estimate the association between mortality and **air pollution**
+- @ZanobettiEtAl2000GeneralizedAdditiveDistributed used **splines in DLMs**
+- @Armstrong2006ModelsRelationshipAmbient laid the ground work for **nonlinear** DLNMs with the aim of modelling temperature-related mortality
+- @GasparriniEtAl2010DistributedLagNonlinear puts everything together developing the **algebra of DLNMs**
+- @BhaskaranEtAl2013TimeSeriesRegression provides an overview of the **time series design**
 
 
-# Second-stage: meta-analysis
+# Second-stage:<br>meta-analysis
 
 ## Why multi-location studies
 
-We just saw the very complex DLNM
+- We just saw the very complex DLNM
 
 &DoubleRightArrow; Needs a high number of cases for stable estimation
 
-<br> Several locations allows higher power to estimate associations
-
-<br> Vulnerability can vary between locations
+- Several locations allows higher power to estimate associations
+- Vulnerability can vary between locations
 
 
 ## An example: the Italian dataset
@@ -678,7 +745,7 @@ We just saw the very complex DLNM
 
 :::
 
-::: {.column}
+::: {.column width=60%}
 ```{r}
 #| label: italy_map
 #| fig-width: 7
@@ -704,7 +771,7 @@ ggplot(metadata) + theme_void() +
 ::::
 
 
-## Some first-stage curves
+## First-stage
 
 :::: {.columns}
 
@@ -712,11 +779,16 @@ ggplot(metadata) + theme_void() +
 <br>
 We fit a DLNM on each city independently
 
-- 87 sets of coefficients $\boldsymbol{\theta}_{ov}$ and (co)-variance matrices
+- 87 vectors of coefficients $\boldsymbol{\theta}_i = \hat{\boldsymbol{\theta}}_{ov}$
+- 87 (co)-variance matrices $\mathbf{S}_i = V(\hat{\boldsymbol{\theta}}_{ov})$
+
+::: aside
+$\boldsymbol{\theta}_i$ and $\mathbf{S}_i$ are for lighter notation
+:::
 
 :::
 
-::: {.column}
+::: {.column width=60%}
 
 ```{r}
 #| label: firstStageCurves
@@ -763,7 +835,7 @@ $$\boldsymbol{\theta}_i = \color{red}{\boldsymbol{\theta}} + \boldsymbol{\epsilo
 
 The estimated $\color{red}{\boldsymbol{\theta}}$ is the weighted mean of the $\boldsymbol{\theta}_i$:
 
-$$\hat{\boldsymbol{\theta}} = \frac{\sum_i \mathbf{S}_i^{-1}\boldsymbol{\theta}_i}{\sum_i \mathbf{S}_i^{-1}}$$
+$$\hat{\boldsymbol{\theta}} = \left( \sum_i \mathbf{S}_i^{-1} \right)^{-1} \sum_i \mathbf{S}_i^{-1}\boldsymbol{\theta}_i$$
 
 <br>**Intuition**: 
 
@@ -824,7 +896,7 @@ This model decomposes the between study variation into:
 
 We can predict associations from the model as
 
-$$\hat{\boldsymbol{\theta}}_i = \color{red}{\hat{\boldsymbol{\theta}}} + \color{green}{\frac{\hat{\boldsymbol{\Psi}}}{\mathbf{S}_i + \hat{\boldsymbol{\Psi}}} \left(\boldsymbol{\theta}_i -  \hat{\boldsymbol{\theta}}\right)}$$
+$$\hat{\boldsymbol{\theta}}_i = \color{red}{\hat{\boldsymbol{\theta}}} + \color{green}{\left(\mathbf{S}_i + \hat{\boldsymbol{\Psi}}\right)^{-1}\hat{\boldsymbol{\Psi}} \left(\boldsymbol{\theta}_i -  \hat{\boldsymbol{\theta}}\right)}$$
 
 -  $\hat{\boldsymbol{\theta}}$ and $\hat{\boldsymbol{\Psi}}$ are *maximum-likelihood estimates*
 
@@ -942,17 +1014,27 @@ All the models are generalised in the mixed-effects meta-regression framework
 
 $$\boldsymbol{\theta}_i = \mathbf{X}_i\boldsymbol{\beta} + \mathbf{Z}_i\mathbf{b}_i + \boldsymbol{\epsilon}_i$$
 
-- $\mathbf{Z}_i$ are random-effects meta-predictors whose effect $\mathbf{b}_i$ varies by city
+- $\mathbf{Z}_i$ are random-effects meta-predictors whose effect $\mathbf{b}_i \sim \mathcal{N}(\mathbf{0}, \boldsymbol{\Psi})$ varies by city
 - This notably allows multi-level random effects (city within country)
 
-<br> Estimated by (restricted) maximum-likelihood
+## Estimation
 
+The model is estimated by Maximum-Likelihood
+
+- This is a Gaussian likelihood
+
+The log-likelihood is typically maximised either by:
+
+- A full Expectation Maximisation algorithm
+- Newton iterations
+
+In both cases, iterates between updating $\hat{\boldsymbol{\beta}}$ and $\hat{\boldsymbol{\Psi}}$
 
 ## BLUPs again
 
 The full model allows to compute BLUPs, obtaining improved estimates of the association in each city
 
-$$\hat{\boldsymbol{\theta}}_i = \color{red}{\mathbf{X}_i\hat{\boldsymbol{\beta}}} + \color{green}{\frac{\mathbf{Z}_i\hat{\boldsymbol{\Psi}}\mathbf{Z}_i^T}{\mathbf{S}_i + \mathbf{Z}_i\hat{\boldsymbol{\Psi}}\mathbf{Z}_i^T} \left(\boldsymbol{\theta}_i - \mathbf{X}_i\hat{\boldsymbol{\beta}}\right)}$$
+$$\hat{\boldsymbol{\theta}}_i = \color{red}{\mathbf{X}_i\hat{\boldsymbol{\beta}}} + \color{green}{\left(\mathbf{S}_i + \mathbf{Z}_i\hat{\boldsymbol{\Psi}}\mathbf{Z}_i^T \right) ^{-1} \left(\mathbf{Z}_i\hat{\boldsymbol{\Psi}}\mathbf{Z}_i^T\right) \left(\boldsymbol{\theta}_i - \mathbf{X}_i\hat{\boldsymbol{\beta}}\right)}$$
 
 Similar interpretation as before
 
@@ -1053,7 +1135,7 @@ Also see `meta`, `metafor` and `dmetar`
 
 # Get remote url of current git repo
 repo_url <- remote_url()
-exurl <- paste0(repo_url,"blob/main/examples/Stage2_multiLoc.R")
+exurl <- paste0(repo_url,"/blob/main/examples/Stage2_multiLoc.R")
 
 # Create QR code
 qrex <- qr_code(exurl)
@@ -1066,16 +1148,13 @@ plot(qrex)
 
 ## Bibliographic notes
 
-@DominiciEtAl2000CombiningEvidenceAir used a **Bayesian hierarchical model** to pool log-linear associations of pollutants in 20 US cities.
+- @DominiciEtAl2000CombiningEvidenceAir used a **Bayesian hierarchical model** to pool log-linear associations of pollutants in 20 US cities.
+- @GasparriniEtAl2012MultivariateMetaanalysisNonlinear proposed **multivariate meta-analysis** models to pool multi-parameter associations.
+- @SeraEtAl2019ExtendedMixedeffectsFramework developed the full **mixed-effects framework for meta-analysis and regression**.
+- @SeraGasparrini2022ExtendedTwostageDesigns and - @MasselotGasparrini2025ModellingExtensionsMultilocation provide **overviews and extensions for multi-location studies**.
 
-@GasparriniEtAl2012MultivariateMetaanalysisNonlinear proposed **multivariate meta-analysis** models to pool multi-parameter associations.
-
-@SeraEtAl2019ExtendedMixedeffectsFramework developed the full **mixed-effects framework for meta-analysis and regression**.
-
-@SeraGasparrini2022ExtendedTwostageDesigns and @MasselotGasparrini2025ModellingExtensionsMultilocation provide **overviews and extensions for multi-location studies**.
 
 # Some examples
-
 
 ## Temperature-related mortality across the world
 

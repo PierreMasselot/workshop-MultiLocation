@@ -80,7 +80,7 @@ ci1 <- confint(m1)
 
 # We use the package dlnm to create the basis
 xdl <- crossbasis(london$pm10, lag = maxlag, 
-  arglag = list(fun = "ns", knots = logknots(maxlag, 1)))
+  arglag = list(fun = "ns", knots = c(1, 3)))
 
 # Fit model
 m2 <- glm(death ~ xdl + ns(date, ny * 7) + dow, data = london,
@@ -95,16 +95,16 @@ lrf2 <- crosspred(xdl, m2, at = 1, cen = 0)
 #----------------------
 
 # Now create crossbasis by also adding a nonlinear spec on var dimensions
-xcb <- crossbasis(london$tmean, lag = maxlag, 
-  argvar = list(fun = "bs", df = 4),
-  arglag = list(fun = "bs", knots = logknots(maxlag, 2)))
+xcb <- crossbasis(london$tmean, lag = 21, 
+  argvar = list(fun = "bs", df = 4, degree = 2),
+  arglag = list(fun = "ns", knots = logknots(maxlag, 2)))
 
 # Fit model
 m3 <- glm(death ~ xcb + ns(date, ny * 7) + dow, data = london,
   family = "quasipoisson", na.action = "na.exclude")
 
 # Extract full surface
-surf3 <- crosspred(xcb, m3)
+surf3 <- crosspred(xcb, m3, cen = 20)
 
 #----------------------
 # Save results
