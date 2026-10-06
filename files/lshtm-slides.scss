@@ -3,8 +3,9 @@
 // fonts
 $font-family-sans-serif: "Corbel", Corbel, sans-serif !default;
 $presentation-heading-font: "Constantia", Constantia, serif !default;
-$presentation-font-size-root: 45px;
-$presentation-h2-font-size: 1.5em;
+$presentation-font-size-root: 40px;
+$presentation-h1-font-size: 1.5em;
+$presentation-h2-font-size: 1.3em;
 
 // colors
 $body-color: #333333 !default;
@@ -13,25 +14,36 @@ $presentation-heading-color: #004550 !default;
 // headings
 $presentation-heading-line-height: 1;
 
+// Section headings
+.reveal .slides section h1 {
+  // Center
+  text-align: center;
+}
+
 // Slide headings
 .reveal .slides section h2 {
+  // Margins around the heading
   margin-top: 0em;
   margin-bottom: 1em;
-  margin-right: 20%;
-  padding-bottom: 0.5em;
-  border-bottom: 2px solid #004550;
+  margin-right: 10%; // This is to leave space for the logo
+  padding-bottom: 0.5em; // Space between the border and body
+  border-bottom: 2px solid #004550; // This is the border
 //    background-color: #004550;
 }
 
 // logo
 .slide-logo {
+  // Allows to fix to a given position
   display: block;
   position: fixed !important;
+  // Position of the logo
   top: 0 !important;
   right: 10px !important;
-  max-height: 15% !important;
+  // Size of the logo
+  max-height: 11% !important;
   height: 100% !important;
   width: auto !important;
+  // Color
   color: $body-color !important;
   z-index: unset !important;
 }
@@ -48,3 +60,4 @@ $presentation-heading-line-height: 1;
     text-decoration: none !important;
   }
 }
+
